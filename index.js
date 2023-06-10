@@ -21,7 +21,7 @@ app.post('/tell-a-story', async (request, response) => {
                 "role": "system", "content": Constants.questionSystemMessage
             },
             {
-                "role": "user", "content": `This is the character ${character}`
+                "role": "user", "content": `This is the character ${character}. Only return the json so it can be parsed.`
             }
         ];
 
