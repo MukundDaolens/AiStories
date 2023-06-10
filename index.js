@@ -5,6 +5,8 @@ const app = express();
 
 app.use(express.json());
 
+const url = 'https://api.openai.com/v1/chat/completions/';
+
 app.get('/', (req, res) => res.send('works'));
 
 app.post('/tell-a-story', async (request, response) => {
@@ -13,7 +15,7 @@ app.post('/tell-a-story', async (request, response) => {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Constants.apiKey}`
+            'Authorization': `Bearer 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`
         };
 
         const messages = [
@@ -38,7 +40,8 @@ app.post('/tell-a-story', async (request, response) => {
 
         return response.send(res);
     } catch (error) {
-        return response.sendStatus(500).send(error);
+        console.log(error);
+        return response.status(500).send(error);
     }
 });
 
@@ -78,7 +81,7 @@ The question is: ${question}`
 
     } catch (error) {
         console.log('Error', error);
-        return response.sendStatus(500).send(error);
+        return response.status(500).send(error);
     }
 });
 
