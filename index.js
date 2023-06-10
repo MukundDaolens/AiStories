@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.json());
 
-const url = 'https://api.openai.com/v1/chat/completions/';
+const url = 'https://api.openai.com/v1/chat/completions';
 
 app.get('/', (req, res) => res.send('works'));
 
@@ -15,12 +15,12 @@ app.post('/tell-a-story', async (request, response) => {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer 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`
+            'Authorization': `Bearer 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`
         };
 
         const messages = [
             {
-                "role": "system", "content": Constants.questionSystemMessage
+                "role": "system", "content": Constants.storyTellerSystemMessage
             },
             {
                 "role": "user", "content": `This is the character ${character}. Only return the json so it can be parsed.`
@@ -28,7 +28,7 @@ app.post('/tell-a-story', async (request, response) => {
         ];
 
         const payload = {
-            model: "gpt-3.5-turbo",
+            model: "gpt-4",
             messages
         };
 
