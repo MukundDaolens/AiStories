@@ -1,6 +1,9 @@
 import express from 'express';
 import axios from 'axios';
 import Constants from './constants.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const app = express();
 
 app.use(express.json());
@@ -15,7 +18,7 @@ app.post('/tell-a-story', async (request, response) => {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer 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`
+            'Authorization': `Bearer ${process.env.API_KEY}`
         };
 
         const messages = [
@@ -23,22 +26,44 @@ app.post('/tell-a-story', async (request, response) => {
                 "role": "system", "content": Constants.storyTellerSystemMessage
             },
             {
-                "role": "user", "content": `This is the character ${character}. Only return the json so it can be parsed.`
+                "role": "user", "content": `This is the character "${character}".`
             }
         ];
 
         const payload = {
             model: "gpt-4",
-            messages
+            messages,
+            stream: true
         };
 
         const completion = await axios.post(url, payload, {
-            headers
+            headers,
+            responseType: 'stream'
         });
 
-        const res = completion.data.choices[0].message.content;
+        const res = completion.data;
 
-        return response.send(res);
+        res.on('data', (dataBuf) => {
+
+            let datas = dataBuf.toString().split("\n");
+            datas = datas.map((line) => line.replace(/^data: /, '').trim()).filter((line) => line !== '');
+
+            for (let data of datas) {
+                if (data === '[DONE]') {
+                    return response.end();
+                }
+                try {
+                    data = JSON.parse(`${data}`);
+                    const text = data.choices[0].delta.content;
+                    if (text) {
+                        response.write(text);
+                    }
+                } catch (error) {
+                    console.log(data);
+                    console.log(error);
+                }
+            }
+        });
     } catch (error) {
         console.log(error);
         return response.status(500).send(error);
@@ -53,7 +78,7 @@ app.post('/question', async (request, response) => {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Constants.apiKey}`
+            'Authorization': `Bearer ${process.env.API_KEY}`
         };
 
         const messages = [
@@ -67,7 +92,7 @@ The question is: ${question}`
         ];
 
         const payload = {
-            model: "gpt-3.5-turbo",
+            model: "gpt-4",
             messages
         };
 
