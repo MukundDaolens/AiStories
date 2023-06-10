@@ -93,16 +93,38 @@ The question is: ${question}`
 
         const payload = {
             model: "gpt-4",
-            messages
+            messages,
+            stream: true
         };
 
         const completion = await axios.post(url, payload, {
-            headers
+            headers,
+            responseType: 'stream'
         });
 
-        const res = completion.data.choices[0].message.content;
+        const res = completion.data;
 
-        return response.send(res);
+        res.on('data', (dataBuf) => {
+
+            let datas = dataBuf.toString().split("\n");
+            datas = datas.map((line) => line.replace(/^data: /, '').trim()).filter((line) => line !== '');
+
+            for (let data of datas) {
+                if (data === '[DONE]') {
+                    return response.end();
+                }
+                try {
+                    data = JSON.parse(`${data}`);
+                    const text = data.choices[0].delta.content;
+                    if (text) {
+                        response.write(text);
+                    }
+                } catch (error) {
+                    console.log(data);
+                    console.log(error);
+                }
+            }
+        });
 
     } catch (error) {
         console.log('Error', error);
